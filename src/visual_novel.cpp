@@ -104,16 +104,16 @@ void VisualNovel::BuildEcoMiddle() {
 // ─── ESCENA 2 (Econ): La consecuencia del progreso ────────────────────────────
 void VisualNovel::BuildEconMiddle() {
     AddNode(1,"Rodrigo Paz",
-        "¡Excelente trabajo! Los comunarios que te frenaban solo protegían lo que era suyo, pero el progreso avanza...");
+        "¡Lo lograste! Los Drill-Golems que despertó la maquinaria descontrolada han sido detenidos. Pero la situación se complica...");
     AddNode(0,"Don Ciriaco",
-        "¿Progreso, Rodrigo? ¡Mira el río! Ya tiene manchas de aceite. Los flamencos de Sama huyeron. ¿Eso es progreso?");
+        "¡Rodrigo! ¿Ves lo que provoca la perforación sin control? Esas criaturas de aceite y metal nacieron del subsuelo revuelto. ¡El río ya tiene manchas negras!");
     AddNode(1,"Rodrigo Paz",
-        "Son accidentes menores. Las empresas tienen pólizas de seguro ambiental. Se hará la remediación. El contrato lo garantiza.");
+        "Es... inesperado. Pero las empresas tienen protocolos de remediación ambiental. Se puede contener. El contrato lo obliga.");
     AddNode(0,"Don Ciriaco",
-        "Joven... todavía puedes cambiar de posición. Los tribunales aún pueden suspender las licencias. ¿Qué decide?");
+        "Joven... mientras los Golems del petróleo siguen despertando, todavía puedes cambiar de posición. Los tribunales aún pueden suspender las licencias. ¿Qué decides?");
     AddChoice(1,"Rodrigo Paz",
-        "El Gobernador le mira fijamente esperando tu respuesta:",
-        {"Apoyar a Rodrigo. Ya decidí. El gas es el futuro de Bolivia.",
+        "El Gobernador te mira fijamente, esperando tu respuesta:",
+        {"Apoyar a Rodrigo. El gas es el futuro de Bolivia, podemos manejar esto.",
          "Escuchar a Don Ciriaco. Me uno a la denuncia legal para proteger Tariquia."},
         {-1, 1});
 }
@@ -136,13 +136,13 @@ void VisualNovel::BuildGoodEnding() {
 // ─── ESCENA 4: MAL FINAL ──────────────────────────────────────────────────────
 void VisualNovel::BuildBadEnding() {
     AddNode(1,"Rodrigo Paz",
-        "Las perforadoras entraron a Tariquia. Fui yo quien firmó el contrato. Esperaba que esto fuera el inicio del progreso...");
+        "Las perforadoras entraron a Tariquia. Fui yo quien firmó el contrato. Esperaba que esto fuera el inicio del progreso... no calculé las consecuencias.");
     AddNode(0,"Don Ciriaco",
-        "Los árboles cayeron. El oso de anteojos ya no se ve. Las comunidades fueron desplazadas. ¿A cuánto ascendió la regalía que recibieron, Rodrigo?");
+        "Los árboles cayeron. El oso de anteojos ya no se ve. Y los Drill-Golems del subsuelo siguen despertando donde la tierra fue herida. La naturaleza responde a su manera.");
     AddNode(1,"Rodrigo Paz",
-        "...Las empresas se fueron antes de lo previsto. El campo era menos rentable de lo esperado. Las regalías... fueron menores a las proyectadas.");
+        "...Las empresas se fueron antes de lo previsto. El campo era menos rentable de lo esperado. Las regalías fueron menores a las proyectadas. Solo quedaron los daños.");
     AddNode(0,"Don Ciriaco",
-        "Tariquia era un regalo que no supimos cuidar. Joven... el dinero que no alcanzó y el bosque que ya no existe. Espero que la próxima generación aprenda.");
+        "Tariquia era un regalo que no supimos cuidar. Joven... el dinero no alcanzó y el bosque ya no existe. Solo espero que la próxima generación aprenda de este error.");
     AddChoice(0,"Don Ciriaco",
         "Algunas pérdidas no tienen remedio.",
         {"[ MAL FINAL - Volver al Menu ]"},{0});

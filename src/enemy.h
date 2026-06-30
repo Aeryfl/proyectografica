@@ -4,8 +4,8 @@
 #include "raylib.h"
 
 enum EnemyType {
-    ENEMY_BLOB,       // Eco path: contamination blobs - killed by stomping
-    ENEMY_COMUNARIO   // Econ path: community defenders - killed by bullets only
+    ENEMY_BLOB,        // Eco path: contamination blobs  - killed by stomping (1 hit)
+    ENEMY_DRILLGOLEM   // Econ path: oil drill golems    - stomp damages (2 stomps), bullets kill (1 hit)
 };
 
 struct Enemy {
@@ -18,7 +18,9 @@ struct Enemy {
     EnemyType type;
     bool dying;
     float dyingTimer;
-    // For comunario: chase behavior
+    int health;          // Blobs = 1, DrillGolems = 2 (stomp deals 1 dmg, bullet kills)
+    float stunnedTimer;  // Brief stun flash after being stomped (but not killed)
+    // For drillgolem: chase behavior
     bool isChasing;
 };
 

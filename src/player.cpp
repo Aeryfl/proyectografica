@@ -114,8 +114,9 @@ void Player::Update(Level& level) {
         isGrounded = false;
     }
 
-    // Shoot (Z key or Left Ctrl) - only works when NOT in eco mode
-    if (!ecoPathMode && (IsKeyDown(KEY_Z) || IsKeyDown(KEY_LEFT_CONTROL))) {
+    // Shoot (Z key or Left Ctrl) - works on both paths
+    // On eco path: shoots water/extinguisher; on econ path: shoots projectile
+    if (IsKeyDown(KEY_Z) || IsKeyDown(KEY_LEFT_CONTROL)) {
         Shoot();
     }
 
@@ -183,11 +184,9 @@ void Player::Draw(float cameraX) {
         DrawRectangle((int)dest.x+8, (int)dest.y+4, 14, 12, LIGHTGRAY); // head
     }
 
-    // Gun arm indicator (only in economic path)
-    if (!ecoPathMode) {
-        float gx = facingRight ? dest.x + 28 : dest.x - 6;
-        DrawRectangle((int)gx, (int)dest.y + 20, 8, 4, DARKGRAY);
-    }
+    // Gun arm indicator (always visible since shooting works on both paths)
+    float gx = facingRight ? dest.x + 28 : dest.x - 6;
+    DrawRectangle((int)gx, (int)dest.y + 20, 8, 4, DARKGRAY);
 }
 
 

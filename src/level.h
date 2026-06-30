@@ -52,7 +52,7 @@ private:
     Texture2D collectibleTexture;
     Texture2D obstacleTexture;
     Texture2D enemyBlobTex;
-    Texture2D enemyComunarioTex;
+    Texture2D enemyDrillgolemTex;
     bool texturesLoaded;
 
     void BuildEcoLevel1();

@@ -18,6 +18,8 @@ static Enemy MakeEnemy(float x, float y, float w, float h,
     e.speed       = spd;  e.movingRight = right;
     e.active      = true; e.type = type;
     e.dying       = false; e.dyingTimer = 0;
+    e.health      = (type == ENEMY_DRILLGOLEM) ? 2 : 1;
+    e.stunnedTimer = 0.0f;
     e.isChasing   = false;
     return e;
 }
@@ -33,7 +35,7 @@ void Level::LoadTextures(bool ecoPath) {
     collectibleTexture = ::LoadTexture("assets/collectibles.png");
     obstacleTexture    = ::LoadTexture("assets/obstacles.png");
     enemyBlobTex       = ::LoadTexture("assets/enemy_blob.png");
-    enemyComunarioTex  = ::LoadTexture("assets/enemy_comunario.png");
+    enemyDrillgolemTex = ::LoadTexture("assets/enemy_drillgolem.png");
     texturesLoaded = true;
 }
 
@@ -41,7 +43,7 @@ void Level::UnloadTextures() {
     if (!texturesLoaded) return;
     ::UnloadTexture(bgTexture); ::UnloadTexture(platformTexture);
     ::UnloadTexture(collectibleTexture); ::UnloadTexture(obstacleTexture);
-    ::UnloadTexture(enemyBlobTex); ::UnloadTexture(enemyComunarioTex);
+    ::UnloadTexture(enemyBlobTex); ::UnloadTexture(enemyDrillgolemTex);
     texturesLoaded = false;
 }
 
@@ -51,143 +53,136 @@ void Level::Load(int levelNum, bool ecoPath) {
     obstacles.clear(); enemies.clear();
     completed = false; isEcoPath = ecoPath;
     currentLevelNum = levelNum; enemiesDefeated = 0;
-    goalRect = { LEVEL_WIDTH - 80, 255, 60, 80 };
+    goalRect = { LEVEL_WIDTH - 80, 355, 60, 80 }; // goal always on ground level
     if (levelNum == 1) { if (ecoPath) BuildEcoLevel1(); else BuildEconLevel1(); }
     else               { if (ecoPath) BuildEcoLevel2(); else BuildEconLevel2(); }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// LEVEL DESIGN RULES:
+// - Continuous ground (y=405, height=45) spanning full LEVEL_WIDTH — NO pits
+// - Optional floating platforms for collectibles — NOT required to complete level
+// - Zero obstacles (no fire/barrels)
+// - 2-3 slow enemies per level, simple patrol only
+// - Goal at ground level (y=355) — always reachable by walking right
+// ═══════════════════════════════════════════════════════════════════════════════
+
 // ── ECO L1: Bosque de Tariquía ────────────────────────────────────────────────
 void Level::BuildEcoLevel1() {
-    goalRect = {LEVEL_WIDTH-80, 255, 60, 80};
-    platforms.push_back({0,405,450,45});
-    platforms.push_back({530,405,600,45});
-    platforms.push_back({1230,405,370,45});
-    platforms.push_back({120,320,100,18}); platforms.push_back({290,245,90,18});
-    platforms.push_back({450,300,80,18});  platforms.push_back({600,210,110,18});
-    platforms.push_back({760,140,100,18}); platforms.push_back({900,210,90,18});
-    platforms.push_back({680,320,80,18});  platforms.push_back({820,320,80,18});
-    platforms.push_back({1050,345,100,18});platforms.push_back({1190,270,100,18});
-    platforms.push_back({1340,200,100,18});platforms.push_back({1480,270,110,18});
-    platforms.push_back({LEVEL_WIDTH-100,330,120,18});
+    goalRect = {LEVEL_WIDTH - 80, 355, 60, 80};
 
-    collectibles.push_back({{140,285,22,22},true,false});
-    collectibles.push_back({{310,210,22,22},true,false});
-    collectibles.push_back({{620,175,22,22},true,false});
-    collectibles.push_back({{780,105,22,22},true,false});
-    collectibles.push_back({{920,175,22,22},true,false});
-    collectibles.push_back({{1210,235,22,22},true,false});
-    collectibles.push_back({{1360,165,22,22},true,false});
-    collectibles.push_back({{1500,235,22,22},true,false});
+    // CONTINUOUS ground — no gaps, no falls possible
+    platforms.push_back({0, 405, LEVEL_WIDTH, 45});
 
-    obstacles.push_back({{390,375,38,30},true});
-    obstacles.push_back({{700,375,38,30},true});
-    obstacles.push_back({{1010,375,38,30},true});
+    // Optional floating platforms for bonus collectibles
+    platforms.push_back({200,  330, 150, 18});
+    platforms.push_back({500,  310, 150, 18});
+    platforms.push_back({800,  330, 150, 18});
+    platforms.push_back({1100, 310, 150, 18});
+    platforms.push_back({1350, 330, 150, 18});
 
-    enemies.push_back(MakeEnemy(130,280,38,38,130,200,70,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(610,172,38,38,600,690,80,true,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(770,102,38,38,760,850,90,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(905,172,38,38,895,975,75,true,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1200,232,38,38,1190,1270,85,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1350,162,38,38,1340,1440,80,true,ENEMY_BLOB));
+    // Collectibles — some on ground, some on platforms (all optional)
+    collectibles.push_back({{250, 295, 22, 22}, true, false});
+    collectibles.push_back({{550, 275, 22, 22}, true, false});
+    collectibles.push_back({{850, 295, 22, 22}, true, false});
+    collectibles.push_back({{1150,275, 22, 22}, true, false});
+    collectibles.push_back({{1400,295, 22, 22}, true, false});
+
+    // NO obstacles
+
+    // 2 blobs — slow, wide patrol, on ground level
+    enemies.push_back(MakeEnemy(400, 367, 38, 38, 350, 550, 50, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(1000,367, 38, 38, 950, 1150, 50, false, ENEMY_BLOB));
 }
 
 // ── ECON L1: Zona de Perforación ─────────────────────────────────────────────
 void Level::BuildEconLevel1() {
-    goalRect = {LEVEL_WIDTH-80,255,60,80};
-    platforms.push_back({0,405,600,45}); platforms.push_back({700,405,400,45});
-    platforms.push_back({1200,405,400,45});
-    platforms.push_back({100,330,120,18}); platforms.push_back({300,260,100,18});
-    platforms.push_back({500,330,80,18});  platforms.push_back({650,200,120,18});
-    platforms.push_back({830,140,100,18}); platforms.push_back({990,200,100,18});
-    platforms.push_back({750,315,80,18});  platforms.push_back({1100,330,100,18});
-    platforms.push_back({1260,260,100,18});platforms.push_back({1410,190,100,18});
-    platforms.push_back({LEVEL_WIDTH-100,270,120,18});
+    goalRect = {LEVEL_WIDTH - 80, 355, 60, 80};
 
-    // Coins (money) collectibles on econ path
-    collectibles.push_back({{120,295,22,22},true,false});
-    collectibles.push_back({{320,225,22,22},true,false});
-    collectibles.push_back({{670,165,22,22},true,false});
-    collectibles.push_back({{850,105,22,22},true,false});
-    collectibles.push_back({{1010,165,22,22},true,false});
-    collectibles.push_back({{1280,225,22,22},true,false});
-    collectibles.push_back({{1430,155,22,22},true,false});
+    // CONTINUOUS ground
+    platforms.push_back({0, 405, LEVEL_WIDTH, 45});
 
-    obstacles.push_back({{450,370,50,35},true}); obstacles.push_back({{700,370,50,35},true});
-    obstacles.push_back({{1150,370,50,35},true});obstacles.push_back({{1380,370,50,35},true});
+    // Optional platforms
+    platforms.push_back({200,  330, 150, 18});
+    platforms.push_back({500,  310, 150, 18});
+    platforms.push_back({800,  330, 150, 18});
+    platforms.push_back({1100, 310, 150, 18});
+    platforms.push_back({1350, 330, 150, 18});
 
-    // Comunarios: indigenous defenders that chase when close - shoot to defeat
-    enemies.push_back(MakeEnemy(110,286,38,44,100,200,75,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(310,216,38,44,300,380,80,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(660,156,38,44,650,750,85,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(840,96,38,44,830,910,90,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(1000,156,38,44,990,1070,85,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(1270,216,38,44,1260,1340,90,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(1420,146,38,44,1410,LEVEL_WIDTH-100,95,false,ENEMY_COMUNARIO));
+    // Collectibles
+    collectibles.push_back({{250, 295, 22, 22}, true, false});
+    collectibles.push_back({{550, 275, 22, 22}, true, false});
+    collectibles.push_back({{850, 295, 22, 22}, true, false});
+    collectibles.push_back({{1150,275, 22, 22}, true, false});
+    collectibles.push_back({{1400,295, 22, 22}, true, false});
+
+    // NO obstacles
+
+    // 2 Drill-Golems — slow patrol on ground
+    enemies.push_back(MakeEnemy(400, 361, 40, 44, 350, 550, 45, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(1000,361, 40, 44, 950, 1150, 45, false, ENEMY_DRILLGOLEM));
 }
 
 // ── ECO L2: Río San Telmo ─────────────────────────────────────────────────────
 void Level::BuildEcoLevel2() {
-    goalRect = {LEVEL_WIDTH-80,155,60,80};
-    platforms.push_back({0,405,250,45});  platforms.push_back({350,405,200,45});
-    platforms.push_back({700,405,250,45});platforms.push_back({1100,405,200,45});
-    platforms.push_back({1400,405,200,45});
-    platforms.push_back({80,330,90,18});  platforms.push_back({230,260,80,18});
-    platforms.push_back({380,200,90,18}); platforms.push_back({520,130,90,18});
-    platforms.push_back({680,200,80,18}); platforms.push_back({810,130,90,18});
-    platforms.push_back({950,200,80,18}); platforms.push_back({700,315,70,18});
-    platforms.push_back({1050,315,80,18});platforms.push_back({1150,245,90,18});
-    platforms.push_back({1295,175,90,18});platforms.push_back({1435,230,100,18});
-    platforms.push_back({LEVEL_WIDTH-100,200,120,18});
+    goalRect = {LEVEL_WIDTH - 80, 355, 60, 80};
 
-    collectibles.push_back({{100,295,22,22},true,true}); collectibles.push_back({{250,225,22,22},true,true});
-    collectibles.push_back({{400,165,22,22},true,true}); collectibles.push_back({{540,95,22,22},true,true});
-    collectibles.push_back({{830,95,22,22},true,true});  collectibles.push_back({{1170,210,22,22},true,true});
-    collectibles.push_back({{1315,140,22,22},true,true});collectibles.push_back({{1455,195,22,22},true,true});
+    // CONTINUOUS ground
+    platforms.push_back({0, 405, LEVEL_WIDTH, 45});
 
-    obstacles.push_back({{310,370,40,35},true}); obstacles.push_back({{660,370,40,35},true});
-    obstacles.push_back({{1060,370,40,35},true});
+    // More platforms (slightly more interesting)
+    platforms.push_back({150,  330, 140, 18});
+    platforms.push_back({380,  310, 140, 18});
+    platforms.push_back({600,  280, 140, 18});
+    platforms.push_back({850,  310, 140, 18});
+    platforms.push_back({1100, 330, 140, 18});
+    platforms.push_back({1350, 310, 140, 18});
 
-    enemies.push_back(MakeEnemy(90,290,40,40,80,160,90,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(240,220,40,40,230,300,100,true,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(390,160,40,40,380,460,110,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(530,90,40,40,520,600,105,true,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(820,90,40,40,810,890,115,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(955,160,40,40,940,1020,100,true,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1165,205,40,40,1150,1230,110,false,ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1305,130,40,40,1290,1380,120,true,ENEMY_BLOB));
+    // Collectibles — water drops
+    collectibles.push_back({{195, 295, 22, 22}, true, true});
+    collectibles.push_back({{425, 275, 22, 22}, true, true});
+    collectibles.push_back({{645, 245, 22, 22}, true, true});
+    collectibles.push_back({{895, 275, 22, 22}, true, true});
+    collectibles.push_back({{1145,295, 22, 22}, true, true});
+    collectibles.push_back({{1395,275, 22, 22}, true, true});
+
+    // NO obstacles
+
+    // 3 blobs — a bit faster than L1
+    enemies.push_back(MakeEnemy(300, 367, 38, 38, 250, 450, 55, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(700, 367, 38, 38, 650, 850, 55, false, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(1200,367, 38, 38, 1150, 1350, 55, true, ENEMY_BLOB));
 }
 
 // ── ECON L2: Tarija Industrial ────────────────────────────────────────────────
 void Level::BuildEconLevel2() {
-    goalRect = {LEVEL_WIDTH-80,155,60,80};
-    platforms.push_back({0,405,300,45});  platforms.push_back({400,405,250,45});
-    platforms.push_back({800,405,220,45});platforms.push_back({1150,405,300,45});
-    platforms.push_back({1510,405,90,45});
-    platforms.push_back({50,330,110,18}); platforms.push_back({220,260,90,18});
-    platforms.push_back({370,190,100,18});platforms.push_back({510,120,90,18});
-    platforms.push_back({660,195,90,18}); platforms.push_back({790,120,100,18});
-    platforms.push_back({920,205,90,18}); platforms.push_back({660,310,80,18});
-    platforms.push_back({1030,315,80,18});platforms.push_back({1150,245,90,18});
-    platforms.push_back({1295,175,90,18});platforms.push_back({1440,235,90,18});
-    platforms.push_back({LEVEL_WIDTH-100,205,120,18});
+    goalRect = {LEVEL_WIDTH - 80, 355, 60, 80};
 
-    collectibles.push_back({{70,295,22,22},true,false}); collectibles.push_back({{240,225,22,22},true,false});
-    collectibles.push_back({{390,155,22,22},true,false});collectibles.push_back({{530,85,22,22},true,false});
-    collectibles.push_back({{800,85,22,22},true,false}); collectibles.push_back({{1170,210,22,22},true,false});
-    collectibles.push_back({{1315,140,22,22},true,false});collectibles.push_back({{1460,200,22,22},true,false});
+    // CONTINUOUS ground
+    platforms.push_back({0, 405, LEVEL_WIDTH, 45});
 
-    obstacles.push_back({{350,370,50,35},true}); obstacles.push_back({{700,370,50,35},true});
-    obstacles.push_back({{1070,370,50,35},true});obstacles.push_back({{1390,370,50,35},true});
+    // Platforms
+    platforms.push_back({150,  330, 140, 18});
+    platforms.push_back({380,  310, 140, 18});
+    platforms.push_back({600,  280, 140, 18});
+    platforms.push_back({850,  310, 140, 18});
+    platforms.push_back({1100, 330, 140, 18});
+    platforms.push_back({1350, 310, 140, 18});
 
-    enemies.push_back(MakeEnemy(60,286,38,44,50,150,95,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(230,216,38,44,220,310,100,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(380,146,38,44,370,460,110,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(520,76,38,44,510,590,115,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(670,151,38,44,660,740,120,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(800,76,38,44,790,870,120,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(930,161,38,44,920,1000,110,false,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(1160,201,38,44,1150,1230,115,true,ENEMY_COMUNARIO));
-    enemies.push_back(MakeEnemy(1305,131,38,44,1295,1380,120,false,ENEMY_COMUNARIO));
+    // Collectibles
+    collectibles.push_back({{195, 295, 22, 22}, true, false});
+    collectibles.push_back({{425, 275, 22, 22}, true, false});
+    collectibles.push_back({{645, 245, 22, 22}, true, false});
+    collectibles.push_back({{895, 275, 22, 22}, true, false});
+    collectibles.push_back({{1145,295, 22, 22}, true, false});
+    collectibles.push_back({{1395,275, 22, 22}, true, false});
+
+    // NO obstacles
+
+    // 3 Drill-Golems — a bit faster
+    enemies.push_back(MakeEnemy(300, 361, 40, 44, 250, 450, 50, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(700, 361, 40, 44, 650, 850, 50, false, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(1200,361, 40, 44, 1150, 1350, 50, true, ENEMY_DRILLGOLEM));
 }
 
 // ─── Update ───────────────────────────────────────────────────────────────────
@@ -209,12 +204,11 @@ void Level::Update(Player& player, float& cameraX) {
             col.active = false; player.AddScore(1);
         }
     }
-    for (const auto& obs : obstacles) {
-        if (CheckCollisionRecs(pRect, obs.rect)) player.TakeDamage();
-    }
+    // Obstacles removed — no damage from obstacles
     if (CheckCollisionRecs(pRect, goalRect)) completed = true;
 }
 
+// ALL enemies now use SIMPLE PATROL ONLY — no chasing behavior
 void Level::UpdateEnemies(float dt, float playerX, float playerY) {
     for (auto& e : enemies) {
         if (!e.active) continue;
@@ -223,35 +217,20 @@ void Level::UpdateEnemies(float dt, float playerX, float playerY) {
             if (e.dyingTimer <= 0) e.active = false;
             continue;
         }
-        // Comunarios chase the player when within range
-        if (e.type == ENEMY_COMUNARIO) {
-            float dx = playerX - e.rect.x;
-            float chaseRange = 220.0f;
-            if (fabsf(dx) < chaseRange) {
-                e.isChasing = true;
-                float dir = (dx > 0) ? 1.0f : -1.0f;
-                e.movingRight = (dir > 0);
-                e.rect.x += dir * e.speed * 1.4f * dt;
-            } else {
-                e.isChasing = false;
-                // Normal patrol
-                if (e.movingRight) {
-                    e.rect.x += e.speed * dt;
-                    if (e.rect.x >= e.patrolMaxX) { e.rect.x = e.patrolMaxX; e.movingRight = false; }
-                } else {
-                    e.rect.x -= e.speed * dt;
-                    if (e.rect.x <= e.patrolMinX) { e.rect.x = e.patrolMinX; e.movingRight = true; }
-                }
-            }
+        // Tick stun timer
+        if (e.stunnedTimer > 0) {
+            e.stunnedTimer -= dt;
+            if (e.stunnedTimer < 0) e.stunnedTimer = 0;
+        }
+
+        // Simple patrol for ALL enemy types — no chasing
+        e.isChasing = false;
+        if (e.movingRight) {
+            e.rect.x += e.speed * dt;
+            if (e.rect.x >= e.patrolMaxX) { e.rect.x = e.patrolMaxX; e.movingRight = false; }
         } else {
-            // ENEMY_BLOB: simple patrol
-            if (e.movingRight) {
-                e.rect.x += e.speed * dt;
-                if (e.rect.x >= e.patrolMaxX) { e.rect.x = e.patrolMaxX; e.movingRight = false; }
-            } else {
-                e.rect.x -= e.speed * dt;
-                if (e.rect.x <= e.patrolMinX) { e.rect.x = e.patrolMinX; e.movingRight = true; }
-            }
+            e.rect.x -= e.speed * dt;
+            if (e.rect.x <= e.patrolMinX) { e.rect.x = e.patrolMinX; e.movingRight = true; }
         }
     }
 }
@@ -264,11 +243,11 @@ void Level::CheckEnemyPlayerCollision(Player& player) {
         if (!e.active || e.dying) continue;
         if (!CheckCollisionRecs(pRect, e.rect)) continue;
 
+        float playerBottom = pRect.y + pRect.height;
+        float enemyTop     = e.rect.y;
+        bool stomping = (pVel.y > 0) && (playerBottom - enemyTop < 20);
+
         if (e.type == ENEMY_BLOB) {
-            // Blobs die from stomping
-            float playerBottom = pRect.y + pRect.height;
-            float enemyTop     = e.rect.y;
-            bool stomping = (pVel.y > 0) && (playerBottom - enemyTop < 20);
             if (stomping) {
                 e.dying = true; e.dyingTimer = 0.4f;
                 enemiesDefeated++; player.StompBounce(); player.AddScore(2);
@@ -276,8 +255,20 @@ void Level::CheckEnemyPlayerCollision(Player& player) {
                 player.TakeDamage();
             }
         } else {
-            // Comunarios: ONLY bullets can kill them, contact damages player
-            player.TakeDamage();
+            // ENEMY_DRILLGOLEM: stomp deals 1 damage (needs 2 stomps or 1 bullet)
+            if (stomping && e.stunnedTimer <= 0) {
+                e.health -= 1;
+                e.stunnedTimer = 0.7f;
+                player.StompBounce();
+                if (e.health <= 0) {
+                    e.dying = true; e.dyingTimer = 0.5f;
+                    enemiesDefeated++; player.AddScore(3);
+                } else {
+                    player.AddScore(1);
+                }
+            } else if (!stomping) {
+                player.TakeDamage();
+            }
         }
     }
 }
@@ -294,7 +285,7 @@ void Level::CheckBulletEnemyCollision(Player& player) {
                 e.dying = true;
                 e.dyingTimer = 0.5f;
                 enemiesDefeated++;
-                player.AddScore(3); // bullets give more points
+                player.AddScore(3);
             }
         }
     }
@@ -324,18 +315,6 @@ void Level::Draw(float cameraX) {
                            sr, {0,0}, 0, WHITE);
         } else {
             DrawRectangleRec(sr, col.isWater ? BLUE : GREEN);
-        }
-    }
-
-    for (const auto& obs : obstacles) {
-        Rectangle sr = {obs.rect.x - cameraX, obs.rect.y, obs.rect.width, obs.rect.height};
-        if (sr.x + sr.width < 0 || sr.x > 800) continue;
-        if (texturesLoaded && obstacleTexture.id != 0) {
-            float iW = (float)obstacleTexture.width / 2.0f;
-            DrawTexturePro(obstacleTexture, {obs.isFire ? iW : 0, 0, iW, (float)obstacleTexture.height},
-                           sr, {0,0}, 0, WHITE);
-        } else {
-            DrawRectangleRec(sr, obs.isFire ? RED : GRAY);
         }
     }
 
@@ -377,17 +356,18 @@ void Level::DrawEnemies(float cameraX) {
         float alpha = e.dying ? (e.dyingTimer > 0 ? e.dyingTimer / 0.5f : 0.1f) : 1.0f;
         Color tint = Fade(WHITE, alpha);
 
-        // Draw enemy hit flash when dying
+        // Draw dying flash
         if (e.dying) {
             DrawRectangle((int)sr.x-2,(int)sr.y-2,(int)sr.width+4,(int)sr.height+4,Fade(ORANGE,alpha));
         }
 
-        // Chase indicator for comunarios (red tint when chasing)
-        if (e.type == ENEMY_COMUNARIO && e.isChasing && !e.dying) {
-            DrawRectangle((int)sr.x-2,(int)sr.y-2,(int)sr.width+4,(int)sr.height+4,{255,0,0,60});
+        // Stun flash for DrillGolem (hit but not dead)
+        if (e.type == ENEMY_DRILLGOLEM && e.stunnedTimer > 0 && !e.dying) {
+            float flashAlpha = (e.stunnedTimer / 0.7f) * 0.7f;
+            DrawRectangle((int)sr.x-2,(int)sr.y-2,(int)sr.width+4,(int)sr.height+4,Fade(YELLOW,flashAlpha));
         }
 
-        Texture2D& tex = (e.type == ENEMY_BLOB) ? enemyBlobTex : enemyComunarioTex;
+        Texture2D& tex = (e.type == ENEMY_BLOB) ? enemyBlobTex : enemyDrillgolemTex;
         if (texturesLoaded && tex.id != 0) {
             Rectangle src = {0,0,(float)tex.width,(float)tex.height};
             if (e.movingRight) src.width = -src.width;
@@ -396,14 +376,13 @@ void Level::DrawEnemies(float cameraX) {
             DrawRectangleRec(sr, e.type==ENEMY_BLOB ? Fade(GREEN,alpha) : Fade(ORANGE,alpha));
         }
 
-        // Health-like indicator above enemy
+        // Health bar above enemy
         if (!e.dying) {
-            Color barColor = (e.type == ENEMY_COMUNARIO) ? RED : Fade(DARKGREEN,0.8f);
-            DrawRectangle((int)sr.x,(int)sr.y-8,(int)sr.width,5,{0,0,0,160});
-            DrawRectangle((int)sr.x,(int)sr.y-8,(int)sr.width,5,barColor);
-            if (e.type == ENEMY_COMUNARIO) {
-                DrawText("! DISPARA !", (int)sr.x-10, (int)sr.y-20, 10, RED);
-            }
+            int maxHP = (e.type == ENEMY_DRILLGOLEM) ? 2 : 1;
+            Color barFull  = (e.type == ENEMY_DRILLGOLEM) ? (Color){220,100,0,220} : Fade(DARKGREEN,0.9f);
+            Color barEmpty = {50,50,50,160};
+            DrawRectangle((int)sr.x,(int)sr.y-8,(int)sr.width,5,barEmpty);
+            DrawRectangle((int)sr.x,(int)sr.y-8,(int)(sr.width * ((float)e.health / maxHP)),5,barFull);
         }
     }
 }

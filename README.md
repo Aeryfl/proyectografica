@@ -15,8 +15,8 @@ El juego gira en torno a la polémica real de la **Reserva Natural de Tariquía*
 |---|---|
 | Menú Principal | Vista panorámica de la ciudad de Tarija |
 | Novela Gráfica (Intro) | Debate entre Don Ciriaco y Rodrigo Paz |
-| **Camino ECO** 🌿 | Bosque de Tariquía → enemigos: blobs de contaminación (pisotazos) |
-| **Camino ECONÓMICO** 💰 | Zona de Perforación → enemigos: comunarios defensores (disparos) |
+| **Camino ECO** 🌿 | Bosque de Tariquía → enemigos: blobs de contaminación (pisotazo los elimina) |
+| **Camino ECONÓMICO** 💰 | Zona de Perforación → enemigos: Drill-Golems (criaturas de maquinaria/petróleo) |
 | Novela Gráfica (Medio) | Consecuencias de tu primera decisión |
 | Nivel 2 | Más difícil, ambientación más dramática |
 | Final | Buen final o Mal final según tus decisiones |
@@ -31,8 +31,9 @@ El juego gira en torno a la polémica real de la **Reserva Natural de Tariquía*
 | Avanzar diálogo | `Enter` / `Espacio` |
 | Elegir opción | `↑↓` + `Enter` |
 
-> **Nota:** En el camino ECO, los enemigos (blobs) se eliminan **pisándolos** (salto encima).
-> En el camino ECONÓMICO, los comunarios solo mueren con **disparos** — ¡si los pisas te dañan!
+> **Nota:** En el camino ECO, los blobs se eliminan **pisándolos** (1 salto encima).
+> En el camino ECONÓMICO, los Drill-Golems necesitan **2 pisotones** para morir — o un solo **disparo** (`Z`).
+> ¡Si pisas un Golem a medias, queda aturdido brevemente!
 
 ## 🛠️ Compilación
 
@@ -65,8 +66,8 @@ eleoele/
 ├── assets/
 │   ├── bg_*.png           # Fondos (menú, diálogos, niveles)
 │   ├── player.png         # Sprite del jugador
-│   ├── enemy_blob.png     # Enemigo: blob de contaminación
-│   ├── enemy_comunario.png # Enemigo: comunario defensor
+│   ├── enemy_blob.png       # Enemigo: blob de contaminación (camino eco)
+│   ├── enemy_drillgolem.png # Enemigo: Drill-Golem de petróleo (camino económico)
 │   ├── npc_guide.png      # Retrato de Don Ciriaco
 │   ├── rodrigo_paz.png    # Retrato de Rodrigo Paz
 │   ├── platform.png       # Tile de plataformas

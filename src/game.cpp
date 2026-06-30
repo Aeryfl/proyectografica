@@ -153,13 +153,13 @@ void Game::DrawMenu() {
     if ((int)(GetTime()*2)%2==0)
         DrawText("Presiona ENTER para comenzar", 240, 310, 22, WHITE);
 
-    DrawText("Flechas/WASD: Mover  |  Espacio/W: Saltar  |  Pisa enemigos para derrotarlos", 65, 425, 13, {180,180,180,200});
+    DrawText("Flechas/WASD: Mover  |  W/Espacio: Saltar  |  Z/Ctrl: Disparar  |  Llega a la META!", 60, 425, 12, {180,180,180,200});
 }
 
 void Game::DrawGameOver() {
     ClearBackground({8,4,4,255});
     DrawText("PERDISTE", 275, 100, 55, RED);
-    DrawText("Tariquía te necesitaba más...", 235, 185, 24, LIGHTGRAY);
+    DrawText("Los Drill-Golems del petroleo fueron demasiado...", 225, 185, 22, LIGHTGRAY);
     DrawText(TextFormat("Puntos obtenidos: %d", player.GetScore()), 295, 240, 22, GOLD);
     if ((int)(GetTime()*2)%2==0)
         DrawText("ENTER para volver al menú", 250, 330, 22, WHITE);
