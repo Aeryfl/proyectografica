@@ -1,5 +1,6 @@
 #include "visual_novel.h"
 #include "raylib.h"
+#include "texture_utils.h"
 #include <cstring>
 #include <cstdio>
 
@@ -13,9 +14,9 @@ void VisualNovel::Init() {
 
 void VisualNovel::LoadTextures() {
     if (!texturesLoaded) {
-        bgTexture    = ::LoadTexture("assets/bg_dialog.png");
-        ciriaco_tex  = ::LoadTexture("assets/npc_guide.png");
-        rodrigo_tex  = ::LoadTexture("assets/rodrigo_paz.png");
+        bgTexture    = ::LoadTexture("assets/bg_dialog.png");          // fondo: sin procesar
+        ciriaco_tex  = LoadTextureTransparent("assets/npc_guide.png"); // retrato: fondo transparente
+        rodrigo_tex  = LoadTextureTransparent("assets/rodrigo_paz.png"); // retrato: fondo transparente
         texturesLoaded = true;
     }
 }

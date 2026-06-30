@@ -1,6 +1,7 @@
 #include "player.h"
 #include "level.h"
 #include "raylib.h"
+#include "texture_utils.h"
 #include <algorithm>
 
 Player::Player() : textureLoaded(false), bulletTexLoaded(false) { Init(); }
@@ -25,11 +26,11 @@ void Player::Init() {
 
 void Player::LoadTextures() {
     if (!textureLoaded) {
-        texture = ::LoadTexture("assets/player.png");
+        texture = LoadTextureTransparent("assets/player.png");
         textureLoaded = (texture.id != 0);
     }
     if (!bulletTexLoaded) {
-        bulletTex = ::LoadTexture("assets/bullet.png");
+        bulletTex = LoadTextureTransparent("assets/bullet.png");
         bulletTexLoaded = (bulletTex.id != 0);
     }
 }

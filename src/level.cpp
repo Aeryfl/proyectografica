@@ -1,6 +1,7 @@
 #include "level.h"
 #include "player.h"
 #include "raylib.h"
+#include "texture_utils.h"
 #include <cmath>
 #include <algorithm>
 
@@ -30,12 +31,12 @@ void Level::LoadTextures(bool ecoPath) {
     const char* bg = "assets/bg_level1.png";
     if (currentLevelNum == 1) bg = ecoPath ? "assets/bg_tariquia.png" : "assets/bg_industrial.png";
     else                      bg = ecoPath ? "assets/bg_level2.png"   : "assets/bg_industrial.png";
-    bgTexture          = ::LoadTexture(bg);
-    platformTexture    = ::LoadTexture("assets/platform.png");
-    collectibleTexture = ::LoadTexture("assets/collectibles.png");
-    obstacleTexture    = ::LoadTexture("assets/obstacles.png");
-    enemyBlobTex       = ::LoadTexture("assets/enemy_blob.png");
-    enemyDrillgolemTex = ::LoadTexture("assets/enemy_drillgolem.png");
+    bgTexture          = ::LoadTexture(bg);                                          // fondos: sin procesar
+    platformTexture    = LoadTextureTransparent("assets/platform.png");              // sprite: fondo transparente
+    collectibleTexture = LoadTextureTransparent("assets/collectibles.png");          // sprite: fondo transparente
+    obstacleTexture    = LoadTextureTransparent("assets/obstacles.png");             // sprite: fondo transparente
+    enemyBlobTex       = LoadTextureTransparent("assets/enemy_blob.png");            // sprite: fondo transparente
+    enemyDrillgolemTex = LoadTextureTransparent("assets/enemy_drillgolem.png");      // sprite: fondo transparente
     texturesLoaded = true;
 }
 
@@ -88,11 +89,17 @@ void Level::BuildEcoLevel1() {
     collectibles.push_back({{1150,275, 22, 22}, true, false});
     collectibles.push_back({{1400,295, 22, 22}, true, false});
 
-    // NO obstacles
+    // Obstacles to encourage platform use
+    obstacles.push_back({{230, 385, 30, 20}, false});
+    obstacles.push_back({{530, 385, 30, 20}, false});
+    obstacles.push_back({{830, 385, 30, 20}, false});
+    obstacles.push_back({{1130, 385, 30, 20}, false});
 
-    // 2 blobs — slow, wide patrol, on ground level
-    enemies.push_back(MakeEnemy(400, 367, 38, 38, 350, 550, 50, true, ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1000,367, 38, 38, 950, 1150, 50, false, ENEMY_BLOB));
+    // 4 blobs — patrol on ground level
+    enemies.push_back(MakeEnemy(400, 367, 38, 38, 350, 450, 60, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(650, 367, 38, 38, 600, 750, 60, false, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(950, 367, 38, 38, 900, 1050, 60, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(1250,367, 38, 38, 1200, 1350, 60, false, ENEMY_BLOB));
 }
 
 // ── ECON L1: Zona de Perforación ─────────────────────────────────────────────
@@ -116,11 +123,17 @@ void Level::BuildEconLevel1() {
     collectibles.push_back({{1150,275, 22, 22}, true, false});
     collectibles.push_back({{1400,295, 22, 22}, true, false});
 
-    // NO obstacles
+    // Obstacles to encourage platform use
+    obstacles.push_back({{230, 385, 30, 20}, true});
+    obstacles.push_back({{530, 385, 30, 20}, true});
+    obstacles.push_back({{830, 385, 30, 20}, true});
+    obstacles.push_back({{1130, 385, 30, 20}, true});
 
-    // 2 Drill-Golems — slow patrol on ground
-    enemies.push_back(MakeEnemy(400, 361, 40, 44, 350, 550, 45, true, ENEMY_DRILLGOLEM));
-    enemies.push_back(MakeEnemy(1000,361, 40, 44, 950, 1150, 45, false, ENEMY_DRILLGOLEM));
+    // 4 Drill-Golems — patrol on ground
+    enemies.push_back(MakeEnemy(400, 361, 40, 44, 350, 450, 55, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(650, 361, 40, 44, 600, 750, 55, false, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(950, 361, 40, 44, 900, 1050, 55, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(1250,361, 40, 44, 1200, 1350, 55, false, ENEMY_DRILLGOLEM));
 }
 
 // ── ECO L2: Río San Telmo ─────────────────────────────────────────────────────
@@ -146,12 +159,18 @@ void Level::BuildEcoLevel2() {
     collectibles.push_back({{1145,295, 22, 22}, true, true});
     collectibles.push_back({{1395,275, 22, 22}, true, true});
 
-    // NO obstacles
+    // Obstacles
+    obstacles.push_back({{180, 385, 30, 20}, false});
+    obstacles.push_back({{400, 385, 30, 20}, false});
+    obstacles.push_back({{880, 385, 30, 20}, false});
+    obstacles.push_back({{1120, 385, 30, 20}, false});
 
-    // 3 blobs — a bit faster than L1
-    enemies.push_back(MakeEnemy(300, 367, 38, 38, 250, 450, 55, true, ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(700, 367, 38, 38, 650, 850, 55, false, ENEMY_BLOB));
-    enemies.push_back(MakeEnemy(1200,367, 38, 38, 1150, 1350, 55, true, ENEMY_BLOB));
+    // 5 blobs — a bit faster than L1
+    enemies.push_back(MakeEnemy(300, 367, 38, 38, 250, 350, 70, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(500, 367, 38, 38, 450, 550, 70, false, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(750, 367, 38, 38, 700, 850, 70, true, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(1000, 367, 38, 38, 950, 1100, 70, false, ENEMY_BLOB));
+    enemies.push_back(MakeEnemy(1250, 367, 38, 38, 1200, 1350, 70, true, ENEMY_BLOB));
 }
 
 // ── ECON L2: Tarija Industrial ────────────────────────────────────────────────
@@ -177,12 +196,18 @@ void Level::BuildEconLevel2() {
     collectibles.push_back({{1145,295, 22, 22}, true, false});
     collectibles.push_back({{1395,275, 22, 22}, true, false});
 
-    // NO obstacles
+    // Obstacles
+    obstacles.push_back({{180, 385, 30, 20}, true});
+    obstacles.push_back({{400, 385, 30, 20}, true});
+    obstacles.push_back({{880, 385, 30, 20}, true});
+    obstacles.push_back({{1120, 385, 30, 20}, true});
 
-    // 3 Drill-Golems — a bit faster
-    enemies.push_back(MakeEnemy(300, 361, 40, 44, 250, 450, 50, true, ENEMY_DRILLGOLEM));
-    enemies.push_back(MakeEnemy(700, 361, 40, 44, 650, 850, 50, false, ENEMY_DRILLGOLEM));
-    enemies.push_back(MakeEnemy(1200,361, 40, 44, 1150, 1350, 50, true, ENEMY_DRILLGOLEM));
+    // 5 Drill-Golems — a bit faster
+    enemies.push_back(MakeEnemy(300, 361, 40, 44, 250, 350, 65, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(500, 361, 40, 44, 450, 550, 65, false, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(750, 361, 40, 44, 700, 850, 65, true, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(1000, 361, 40, 44, 950, 1100, 65, false, ENEMY_DRILLGOLEM));
+    enemies.push_back(MakeEnemy(1250, 361, 40, 44, 1200, 1350, 65, true, ENEMY_DRILLGOLEM));
 }
 
 // ─── Update ───────────────────────────────────────────────────────────────────
@@ -204,7 +229,14 @@ void Level::Update(Player& player, float& cameraX) {
             col.active = false; player.AddScore(1);
         }
     }
-    // Obstacles removed — no damage from obstacles
+    
+    // Check obstacles collision
+    for (const auto& obs : obstacles) {
+        if (CheckCollisionRecs(pRect, obs.rect)) {
+            player.TakeDamage();
+        }
+    }
+    
     if (CheckCollisionRecs(pRect, goalRect)) completed = true;
 }
 
@@ -318,6 +350,20 @@ void Level::Draw(float cameraX) {
         }
     }
 
+    // Draw obstacles
+    for (const auto& obs : obstacles) {
+        Rectangle sr = {obs.rect.x - cameraX, obs.rect.y, obs.rect.width, obs.rect.height};
+        if (sr.x + sr.width < 0 || sr.x > 800) continue;
+        if (texturesLoaded && obstacleTexture.id != 0) {
+            float iW = (float)obstacleTexture.width / 2.0f; // assuming 2 frames for fire vs spikes
+            DrawTexturePro(obstacleTexture, {obs.isFire ? iW : 0, 0, iW, (float)obstacleTexture.height},
+                           sr, {0,0}, 0, WHITE);
+        } else {
+            DrawRectangleRec(sr, obs.isFire ? RED : ORANGE);
+            DrawRectangleLines((int)sr.x, (int)sr.y, (int)sr.width, (int)sr.height, BLACK);
+        }
+    }
+
     // Goal with pulse
     Rectangle sg = {goalRect.x - cameraX, goalRect.y, goalRect.width, goalRect.height};
     DrawRectangleRec(sg, GOLD);
@@ -331,19 +377,19 @@ void Level::Draw(float cameraX) {
 void Level::DrawPlatform(Rectangle plat, float cameraX) {
     Rectangle sp = {plat.x - cameraX, plat.y, plat.width, plat.height};
     if (sp.x + sp.width < 0 || sp.x > 800) return;
-    if (texturesLoaded && platformTexture.id != 0) {
-        float tW = (float)platformTexture.width;
-        float tH = (float)platformTexture.height;
-        int tiles = (int)(plat.width / tW) + 1;
-        for (int i = 0; i < tiles; i++) {
-            float dx = sp.x + i * tW, dw = tW, sw = tW;
-            if (dx + dw > sp.x + sp.width) { dw = (sp.x + sp.width) - dx; sw = dw; }
-            if (dx + dw < 0 || dx > 800) continue;
-            DrawTexturePro(platformTexture, {0,0,sw,tH}, {dx, sp.y, dw, sp.height}, {0,0}, 0, WHITE);
-        }
+    
+    if (isEcoPath) {
+        // Eco Path: Grass and dirt
+        DrawRectangleRec(sp, DARKBROWN); // Dirt base
+        DrawRectangle((int)sp.x, (int)sp.y, (int)sp.width, 10, GREEN); // Grass top
     } else {
-        DrawRectangleRec(sp, isEcoPath ? DARKBROWN : DARKGRAY);
-        DrawRectangle((int)sp.x,(int)sp.y,(int)sp.width,6, isEcoPath ? DARKGREEN : GRAY);
+        // Econ Path: Metallic industrial
+        DrawRectangleRec(sp, GRAY); // Metal base
+        DrawRectangleLinesEx(sp, 2.0f, DARKGRAY); // Metal border
+        // Some industrial details
+        for (int i = 0; i < sp.width; i += 20) {
+            DrawLine((int)(sp.x + i), (int)sp.y, (int)(sp.x + i), (int)(sp.y + sp.height), DARKGRAY);
+        }
     }
 }
 
