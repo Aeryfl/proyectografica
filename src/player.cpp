@@ -21,6 +21,7 @@ void Player::Init() {
     invincibleTimer = 0.0f;
     shootCooldown   = 0.0f;
     ecoPathMode     = true;
+    walkDistance    = 0.0f;
     bullets.clear();
 }
 
@@ -105,9 +106,20 @@ void Player::Update(Level& level) {
     if (shootCooldown > 0) shootCooldown -= dt;
 
     // Horizontal movement
-    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) { velocity.x = speed; facingRight = true; }
-    else if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) { velocity.x = -speed; facingRight = false; }
-    else velocity.x = 0;
+    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) { 
+        velocity.x = speed; 
+        facingRight = true; 
+        if (isGrounded) walkDistance += abs(velocity.x) * dt;
+    }
+    else if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) { 
+        velocity.x = -speed; 
+        facingRight = false; 
+        if (isGrounded) walkDistance += abs(velocity.x) * dt;
+    }
+    else { 
+        velocity.x = 0; 
+        walkDistance = 0.0f; 
+    }
 
     // Jump
     if ((IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W) || IsKeyPressed(KEY_SPACE)) && isGrounded) {
@@ -176,10 +188,37 @@ void Player::Draw(float cameraX) {
     // Draw player
     if (invincible && ((int)(invincibleTimer * 10) % 2 == 0)) return;
     Rectangle dest = { position.x - cameraX, position.y, 30, 44 };
+    
     if (textureLoaded && texture.id != 0) {
         Rectangle src = { 0, 0, (float)texture.width, (float)texture.height };
         if (!facingRight) src.width = -src.width;
-        DrawTexturePro(texture, src, dest, {0, 0}, 0.0f, WHITE);
+        
+        float rotation = 0.0f;
+        
+        // Simular 3 frames de animacion
+        if (!isGrounded) {
+            rotation = (velocity.y < 0) ? -5.0f : 5.0f;
+            if (!facingRight) rotation = -rotation;
+        } else if (abs(velocity.x) > 0.1f) {
+            int cycle = ((int)(walkDistance / 35.0f)) % 4; // ciclo más lento para que se note
+            if (cycle == 1) {
+                rotation = 12.0f;
+                dest.y -= 3.0f;
+            } else if (cycle == 3) {
+                rotation = -12.0f;
+                dest.y -= 3.0f;
+            }
+        }
+        
+        Vector2 origin = { 15.0f, 44.0f }; // rotar desde los pies
+        dest.x += 15.0f;
+        dest.y += 44.0f;
+
+        DrawTexturePro(texture, src, dest, origin, rotation, WHITE);
+        
+        // Restaurar dest para el arma
+        dest.x -= 15.0f;
+        dest.y -= 44.0f;
     } else {
         DrawRectangleRec(dest, BLUE);
         DrawRectangle((int)dest.x+8, (int)dest.y+4, 14, 12, LIGHTGRAY); // head

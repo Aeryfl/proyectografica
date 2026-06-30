@@ -53,6 +53,7 @@ private:
     bool facingRight;
     bool invincible;
     float invincibleTimer;
+    float walkDistance; // Used for animation frames
 
     // Shooting
     std::vector<Bullet> bullets;
