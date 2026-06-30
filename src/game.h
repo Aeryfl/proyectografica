@@ -39,6 +39,9 @@ private:
 
     Texture2D menuBgTexture;
     bool menuTextureLoaded;
+    
+    Music bgMusic;
+    bool musicLoaded;
 
     void LoadLevel(int num);
     void UpdateCamera();

@@ -10,6 +10,14 @@ void Game::Init() {
     menuTextureLoaded = (menuBgTexture.id != 0);
     player.LoadTextures();
     visualNovel.LoadTextures();
+    
+    bgMusic = LoadMusicStream("assets/soundtrack.mp3");
+    if (bgMusic.stream.buffer != NULL) {
+        musicLoaded = true;
+        PlayMusicStream(bgMusic);
+    } else {
+        musicLoaded = false;
+    }
 }
 
 void Game::ResetGame() {
@@ -20,6 +28,10 @@ void Game::ResetGame() {
 }
 
 void Game::Update() {
+    if (musicLoaded) {
+        UpdateMusicStream(bgMusic);
+    }
+
     switch (currentState) {
         case MENU:
             if (IsKeyPressed(KEY_ENTER)) {
@@ -167,6 +179,7 @@ void Game::DrawGameOver() {
 
 void Game::Unload() {
     if (menuTextureLoaded) { ::UnloadTexture(menuBgTexture); menuTextureLoaded = false; }
+    if (musicLoaded) { StopMusicStream(bgMusic); UnloadMusicStream(bgMusic); musicLoaded = false; }
     player.UnloadTextures();
     visualNovel.UnloadTextures();
     currentLevel.UnloadTextures();
